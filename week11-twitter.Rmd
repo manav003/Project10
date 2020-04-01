@@ -1,0 +1,88 @@
+---
+title: "week11-twitter"
+author: "Mathi Manavalan"
+date: "3/31/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Studio API Code
+Setting the working directory is not necessary for an RMarkdown file.
+
+## Libraries
+Importing the libraries necessary for the data importing, cleaning, and analyzing.
+```{r libraries, message=FALSE}
+library(twitteR)
+library(tidyverse)
+
+```
+
+## Data Import and Cleaning
+
+```{r keys,echo=FALSE, message=FALSE, include=TRUE}
+
+api <- "rN5sTV6MAEHLVGwLfL2GeVd7J"
+secretKey <- "uM6NZknlicOfcePx5wu0bkYGZ1rne28QyOSnmttH8NW4af86P8"
+token <- "1244697675271815168-WkDkHPWpYhAXIKoRq6JprQvFnB82uk"
+secretToken <- "ubSRkij4Uyfx0L2jbrrDsAwGSyUBHIOZ5EapKsCggwtFx"
+
+```
+The keys inputted into the function below are the keys found for my particular app through my Twitter developer account.
+
+```{r, message=FALSE}
+setup_twitter_oauth(api, secretKey, token, secretToken)
+
+tweets <- searchTwitter("#rstats", 1000)
+tweets_clean <- strip_retweets(tweets)
+tweets_tbl <- twListToDF(tweets_clean) %>% 
+  select(screenName, text, favoriteCount, retweetCount)
+  
+
+```
+
+## Analysis
+
+```{r}
+
+plot1sum <- summary(lm(tweets_tbl$retweetCount ~ str_length(tweets_tbl$text)))
+plot1sum
+
+```
+
+The above statistical test creates a linear model between the number of characters in a tweet and how many times that tweet was retweeted.
+
+```{r}
+
+plot2sum <- summary(lm(tweets_tbl$favoriteCount ~ str_length(tweets_tbl$text)))
+plot2sum
+
+```
+
+The above statistical test creates a linear model between the number of characters in a tweet and how many times that tweet was liked/favorited.
+
+## Visualization
+
+```{r, message=FALSE, include=TRUE}
+plot1 <- ggplot(tweets_tbl, aes(x=str_length(text), y= retweetCount)) + 
+  geom_jitter() +
+  labs(x = "Number of Characters in Tweet", y = "Number of Retweets") +
+  geom_smooth(method = "lm", se = FALSE)
+plot1
+
+```
+
+The above plot displays the relationship between the number of characters in a tweet (on the x-axis) and how many times that tweet was retweeted (on the y-axis) as a scatterplot. The plot also includes a linear regression line between the two variables.
+
+```{r, message=FALSE, include=TRUE}
+plot2 <- ggplot(tweets_tbl, aes(x=str_length(text), y= favoriteCount)) + 
+  geom_jitter() +
+  labs(x = "Character length of Tweet", y = "Number of Likes/Favorites") +
+  geom_smooth(method = "lm", se = FALSE)
+plot2
+
+```
+The above plot displays the relationship between the number of characters in a tweet (on the x-axis) and how many times that tweet was 'liked' or 'favorited' (on the y-axis) as a scatterplot. The plot also includes a linear regression line between the two variables.
+
